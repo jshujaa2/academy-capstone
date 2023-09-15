@@ -22,19 +22,8 @@ def get_secret():
     return get_secret_value_response
 
 def read_data(path: Path):
-    secret = get_secret()
-    sfOptions = {
-        "sfURL" : json.loads(secret['SecretString'])["URL"],
-        "sfUser" : json.loads(secret['SecretString'])["USER_NAME"],
-        "sfPassword" : json.loads(secret['SecretString'])["PASSWORD"],
-        "sfDatabase" : json.loads(secret['SecretString'])["DATABASE"],
-        "sfSchema" : "JORDY",
-        "sfWarehouse" : json.loads(secret['SecretString'])["WAREHOUSE"]
-    }
-
-    SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
     config = {
-        "spark.jars.packages": "org.apache.hadoop:hadoop-aws:3.2.0;net.snowflake:spark-snowflake_2.12:2.9.0-spark_3.1;net.snowflake:snowflake-jdbc:3.13.3" ,
+        "spark.jars.packages": "org.apache.hadoop:hadoop-aws:3.2.0,net.snowflake:spark-snowflake_2.12:2.9.0-spark_3.1,net.snowflake:snowflake-jdbc:3.13.3" ,
         "fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
     }
 
@@ -55,12 +44,12 @@ def clean(frame: DataFrame) -> DataFrame:
 def write_data(frame: DataFrame):
     secret = get_secret()
     sfOptions = {
-        "sfURL" : json.loads(seret['SecretString'])["URL"],
-        "sfUser" : json.loads(seret['SecretString'])["USER_NAME"],
-        "sfPassword" : json.loads(seret['SecretString'])["PASSWORD"],
-        "sfDatabase" : json.loads(seret['SecretString'])["DATABASE"],
+        "sfURL" : json.loads(secret['SecretString'])["URL"],
+        "sfUser" : json.loads(secret['SecretString'])["USER_NAME"],
+        "sfPassword" : json.loads(secret['SecretString'])["PASSWORD"],
+        "sfDatabase" : json.loads(secret['SecretString'])["DATABASE"],
         "sfSchema" : "JORDY",
-        "sfWarehouse" : json.loads(seret['SecretString'])["WAREHOUSE"]
+        "sfWarehouse" : json.loads(secret['SecretString'])["WAREHOUSE"]
     }
 
     (frame.write
@@ -88,12 +77,4 @@ if __name__ == "__main__":
     cleaned_frame.printSchema()
     cleaned_frame.show()
     # Load
-
-
-    cleaned_frame.write.parquet(
-        path=str(target_dir / "cleaned_flights"),
-        mode="overwrite",
-        # Exercise: how much bigger are the files when the compression codec is set to "uncompressed"? And 'gzip'?
-        compression="snappy",
-    )
-    write_data()
+    write_data(cleaned_frame)
