@@ -19,15 +19,17 @@ def get_secret():
     )
 
     get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    return get_secret_value_response
 
 def read_data(path: Path):
+    secret = get_secret()
     sfOptions = {
-        "sfURL" : json.loads(get_secret()['SecretString'])["URL"],
-        "sfUser" : json.loads(get_secret()['SecretString'])["USER_NAME"],
-        "sfPassword" : json.loads(get_secret()['SecretString'])["PASSWORD"],
-        "sfDatabase" : json.loads(get_secret()['SecretString'])["DATABASE"],
+        "sfURL" : json.loads(secret['SecretString'])["URL"],
+        "sfUser" : json.loads(secret['SecretString'])["USER_NAME"],
+        "sfPassword" : json.loads(secret['SecretString'])["PASSWORD"],
+        "sfDatabase" : json.loads(secret['SecretString'])["DATABASE"],
         "sfSchema" : "JORDY",
-        "sfWarehouse" : json.loads(get_secret()['SecretString'])["WAREHOUSE"]
+        "sfWarehouse" : json.loads(secret['SecretString'])["WAREHOUSE"]
     }
 
     SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
@@ -60,8 +62,6 @@ def write_data(frame: DataFrame):
         "sfSchema" : "JORDY",
         "sfWarehouse" : json.loads(seret['SecretString'])["WAREHOUSE"]
     }
-
-    SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
 
     (frame.write
          .format("snowflake")
